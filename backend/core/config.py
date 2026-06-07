@@ -10,6 +10,9 @@ load_dotenv(_ROOT_ENV)
 
 
 class Settings(BaseSettings):
+    # App
+    app_name: str = "Quanta Terminal"
+    environment: str = "development"
     # LLM
     google_api_key: str = Field(default="")
 
@@ -17,6 +20,12 @@ class Settings(BaseSettings):
     langchain_api_key: str = Field(default="")
     langchain_tracing: str = Field(default="true")
     langchain_project: str = Field(default="quanta-terminal")
+
+    # provider info
+    gemini_model: str = "gemini-2.5-flash-lite"
+    ollama_model: str = "llama3.2:latest" # "gemma3:270m"
+    model_provider: str = "google_genai"
+    llm_provider: str  = "gemini" # Options: 'gemini' | 'ollama'
 
     # Pinecone
     pinecone_api_key: str = Field(default="")
