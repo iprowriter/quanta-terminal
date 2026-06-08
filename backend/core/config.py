@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     supabase_url: str = Field(default="")
     supabase_anon_key: str = Field(default="")
     supabase_service_role_key: str = Field(default="")
+    supabase_jwt_secret: str = Field(default="")   # Settings > API > JWT Secret
     database_url: str = Field(default="")
 
     # App

@@ -19,3 +19,11 @@ lsof -ti :6274 | xargs kill -9 2>&1 && echo "killed"
 
  lsof -ti TCP:6274 | xargs kill -9 2>/dev/null; lsof -ti TCP:6277 | xargs kill -9 2>/dev/null; echo "done"
    Kill processes on ports 6274 and 6277 using TCP syntax
+
+## Test the Graph (Orchestrator) in Development
+`cd backend`
+`uv run python agents/graph.py QUBT`
+
+## FASTAPI Testing
+cd backend
+uv run uvicorn api.main:app --reload --port 8000
