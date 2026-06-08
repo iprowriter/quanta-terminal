@@ -23,9 +23,9 @@ class Settings(BaseSettings):
 
     # provider info
     gemini_model: str = "gemini-2.5-flash-lite"
-    ollama_model: str = "llama3.2:latest" # "gemma3:270m"
+    ollama_model: str = "gemma3:270m" # "llama3.2:latest" # "gemma3:270m"
     model_provider: str = "google_genai"
-    llm_provider: str  = "gemini" # Options: 'gemini' | 'ollama'
+    llm_provider: str  = 'ollama' # Options: 'gemini' | 'ollama'
 
     # Pinecone
     pinecone_api_key: str = Field(default="")
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     # Supabase / DB
     supabase_url: str = Field(default="")
     supabase_anon_key: str = Field(default="")
-    supabase_service_role_key: str = Field(default="")
+    supabase_service_role_key: str = Field(default="", validation_alias="SUPABASE_KEY")
     supabase_jwt_secret: str = Field(default="")   # Settings > API > JWT Secret
     database_url: str = Field(default="")
 

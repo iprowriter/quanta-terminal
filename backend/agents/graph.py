@@ -176,14 +176,20 @@ async def initialize() -> None:
     if _pipeline is not None:
         return  # Already initialised
 
-    # Boot all MCP subprocesses in parallel
-    await asyncio.gather(
+    # Boot all MCP subprocesses in parallel.
+    # return_exceptions=True prevents one agent's failure from cancelling
+    # the others mid-flight (which can surface as confusing secondary errors).
+    results = await asyncio.gather(
         sec_agent.initialize(),
         earnings_agent.initialize(),
         analyst_agent.initialize(),
         news_agent.initialize(),
         tech_agent.initialize(),
+        return_exceptions=True,
     )
+    errors = [r for r in results if isinstance(r, BaseException)]
+    if errors:
+        raise errors[0]
 
     _pipeline = _build_graph()
 
