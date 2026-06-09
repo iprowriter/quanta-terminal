@@ -23,9 +23,12 @@ class Settings(BaseSettings):
 
     # provider info
     gemini_model: str = "gemini-2.5-flash-lite"
-    ollama_model: str = "gemma3:270m" # "llama3.2:latest" # "gemma3:270m"
+    ollama_model: str = "llama3.2:latest"
     model_provider: str = "google_genai"
-    llm_provider: str  = 'ollama' # Options: 'gemini' | 'ollama'
+    llm_provider: str  = "gemini"       # agents: 'gemini' | 'ollama'
+    memo_writer_provider: str = "gemini" # memo synthesis: 'gemini' | 'ollama'
+                                         # set to 'gemini' to preserve writing quality
+                                         # while agents use ollama for tool calls
 
     # Pinecone
     pinecone_api_key: str = Field(default="")

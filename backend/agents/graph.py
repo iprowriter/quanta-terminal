@@ -267,10 +267,15 @@ async def stream_pipeline(ticker: str) -> AsyncGenerator[dict[str, Any], None]:
                 config={"configurable": {"on_agent_complete": _on_agent_complete}},
             )
             await queue.put({
-                "event":  "memo_complete",
-                "ticker": ticker,
-                "memo":   result["memo"],
-                "date":   result["date"],
+                "event":             "memo_complete",
+                "ticker":            ticker,
+                "memo":              result["memo"],
+                "date":              result["date"],
+                "sec_analysis":      result["sec_analysis"],
+                "earnings_analysis": result["earnings_analysis"],
+                "analyst_analysis":  result["analyst_analysis"],
+                "news_analysis":     result["news_analysis"],
+                "tech_analysis":     result["tech_analysis"],
             })
         except Exception as exc:
             await queue.put({"event": "error", "message": str(exc)})

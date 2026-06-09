@@ -21,8 +21,14 @@ from core.config import settings
 # ---------------------------------------------------------------------------
 
 def _build_model():
-    """Return a Gemini or Ollama chat model based on settings."""
-    if settings.llm_provider == "ollama":
+    """
+    Return a chat model for memo synthesis.
+
+    Uses memo_writer_provider (independent of llm_provider) so you can run
+    agents on Ollama (free, tool-capable) while keeping Gemini for the
+    higher-quality synthesis step — only 1 Gemini call per memo run.
+    """
+    if settings.memo_writer_provider == "ollama":
         return init_chat_model(
             settings.ollama_model,
             model_provider="ollama",

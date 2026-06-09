@@ -1,3 +1,20 @@
+import re as _re
+from langchain_core.messages import HumanMessage as _HumanMessage
+
+
+def ticker_hint(messages: list) -> str:
+    """Extract the ticker from the first human message and return an explicit tool instruction."""
+    for m in messages:
+        if isinstance(m, _HumanMessage):
+            match = _re.search(r'\b([A-Z]{2,6})\b', m.content)
+            if match:
+                t = match.group(1)
+                return (
+                    f"\n\nThe stock ticker you are analysing is {t}. "
+                    f"You MUST pass \"{t}\" as the ticker argument to every tool call. "
+                    f"Never call a tool with an empty or missing ticker."
+                )
+    return ""
 
 
 analyst_system_prompt = """You are a Wall Street-style equity analyst for Quanta Terminal, a research \
