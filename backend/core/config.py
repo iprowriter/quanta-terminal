@@ -5,7 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 from dotenv import load_dotenv
 
-_ROOT_ENV = Path(__file__).parents[2] / ".env"
+_ROOT_ENV = Path(__file__).parents[1] / ".env"
 load_dotenv(_ROOT_ENV)
 
 
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # LangSmith
     langchain_api_key: str = Field(default="")
-    langchain_tracing: str = Field(default="true")
+    langchain_tracing_v2: str = Field(default="true")
     langchain_project: str = Field(default="quanta-terminal")
 
     # provider info
