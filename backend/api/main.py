@@ -52,11 +52,20 @@ if settings.sentry_dsn:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("⚡ Quanta Terminal: initialising agent pipeline…")
-    await init_pipeline()
-    print("✓  All agents ready.")
+    try:
+        await init_pipeline()
+        print("✓  All agents ready.")
+    except Exception as exc:
+        # Log but don't crash — health check must still respond so Railway
+        # doesn't kill the container. Memo generation will fail gracefully.
+        print(f"⚠  Agent pipeline failed to initialise: {exc}")
+        sentry_sdk.capture_exception(exc)
 
-    redis_ok = await cache.ping()
-    print(f"✓  Redis {'connected' if redis_ok else 'UNAVAILABLE — caching disabled'}.")
+    try:
+        redis_ok = await cache.ping()
+        print(f"✓  Redis {'connected' if redis_ok else 'UNAVAILABLE — caching disabled'}.")
+    except Exception as exc:
+        print(f"⚠  Redis unavailable: {exc}")
 
     yield
 

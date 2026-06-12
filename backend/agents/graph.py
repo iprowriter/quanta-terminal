@@ -189,6 +189,8 @@ async def initialize() -> None:
     )
     errors = [r for r in results if isinstance(r, BaseException)]
     if errors:
+        for err in errors:
+            print(f"⚠  Agent init error: {err}")
         raise errors[0]
 
     _pipeline = _build_graph()
