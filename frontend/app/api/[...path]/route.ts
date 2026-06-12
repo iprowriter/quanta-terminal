@@ -19,7 +19,8 @@ async function proxy(
   const url = new URL(request.url);
 
   // Reconstruct the backend URL preserving query string
-  const backendUrl = `${BACKEND_URL}/api/${path.join("/")}${url.search}`;
+  //const backendUrl = `${BACKEND_URL}/api/${path.join("/")}${url.search}`;  
+  const backendUrl = `https://quanta-terminal-production.up.railway.app/api/v1/stocks/api/${path.join("/")}${url.search}`; 
 
   // Forward headers but strip host (causes TLS mismatch on Railway)
   const headers = new Headers(request.headers);

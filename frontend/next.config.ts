@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+//const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+const BACKEND_URL = "https://quanta-terminal-production.up.railway.app"
 
 const nextConfig: NextConfig = {
   async rewrites() {
