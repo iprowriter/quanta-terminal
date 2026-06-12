@@ -3,7 +3,10 @@
  * Base URL is proxied via next.config.ts rewrites (/api → localhost:8000/api).
  */
 
-const BASE = "/api/v1";
+// In production, call Railway directly (Vercel blocks server-side proxy to Railway).
+// NEXT_PUBLIC_API_URL = https://quanta-terminal-production.up.railway.app/api/v1
+// Falls back to relative URL for local dev (proxied via next.config.ts).
+const BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 // ---------------------------------------------------------------------------
 // Types
