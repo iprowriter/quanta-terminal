@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development")
     secret_key: str = Field(default="change-me")
 
+    # Sentry
+    sentry_dsn: str = Field(default="")   # leave blank to disable
+
     # Tracked stocks
     tracked_tickers_raw: str = Field(
         default="QUBT,RGTI,QBTS,IONQ,NVDA,SMCI,MSTR,ARQQ",

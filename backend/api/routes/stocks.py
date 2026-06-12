@@ -31,7 +31,7 @@ _NAMES: dict[str, str] = {
     "SMCI":  "Super Micro Computer",
     "MSTR":  "MicroStrategy",
     "ARQQ":  "Arqit Quantum",
-    "IBMQ":  "IBM Quantum",
+    "IBM":  "IBM Quantum",
     "INTC":  "Intel Corp.",
 }
 

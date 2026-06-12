@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { sendChat, type AgentName } from "@/lib/api";
+import { useTypewriter } from "@/hooks/useTypewriter";
 import { theme } from "@/lib/theme";
 
 const AGENTS: { value: AgentName; label: string }[] = [
@@ -13,6 +14,7 @@ const AGENTS: { value: AgentName; label: string }[] = [
 ];
 
 interface Message {
+  id:    number;
   role:  "user" | "assistant";
   text:  string;
   agent: AgentName;
@@ -23,34 +25,111 @@ interface Props {
   accessToken: string;
 }
 
+// Renders a single assistant message with optional typewriter animation
+function AssistantMessage({
+  message,
+  animate,
+}: {
+  message: Message;
+  animate: boolean;
+}) {
+  const displayed = useTypewriter(animate ? message.text : "", { speed: 8, delay: 16 });
+  const text      = animate ? displayed : message.text;
+  const showCursor = animate && displayed.length < message.text.length;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      <span
+        style={{
+          fontFamily: theme.font.mono,
+          fontSize: "10px",
+          color: theme.colors.green,
+          letterSpacing: "0.06em",
+        }}
+      >
+        {message.agent.toUpperCase()} AGENT
+      </span>
+      <p
+        style={{
+          margin: 0,
+          fontSize: "13px",
+          color: theme.colors.textPrimary,
+          lineHeight: 1.7,
+          whiteSpace: "pre-wrap",
+          background: theme.colors.bg,
+          padding: "12px 14px",
+          borderRadius: theme.radius.sm,
+          border: `1px solid ${theme.colors.border}`,
+          wordBreak: "break-word",
+        }}
+      >
+        {text}
+        {showCursor && (
+          <span
+            style={{
+              display: "inline-block",
+              width: "2px",
+              height: "14px",
+              background: theme.colors.green,
+              marginLeft: "2px",
+              verticalAlign: "middle",
+              animation: "blink 0.7s step-end infinite",
+            }}
+          />
+        )}
+        <style>{`
+          @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+          }
+        `}</style>
+      </p>
+    </div>
+  );
+}
+
 export default function ChatSidebar({ ticker, accessToken }: Props) {
   const [messages,  setMessages]  = useState<Message[]>([]);
   const [input,     setInput]     = useState("");
   const [agent,     setAgent]     = useState<AgentName>("analyst");
   const [threadId,  setThreadId]  = useState<string | null>(null);
   const [loading,   setLoading]   = useState(false);
+  const [latestId,  setLatestId]  = useState<number | null>(null);
+  const idRef     = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const text = input.trim();
     if (!text || loading) return;
 
-    setMessages((m) => [...m, { role: "user", text, agent }]);
+    const userId = ++idRef.current;
+    setMessages((m) => [...m, { id: userId, role: "user", text, agent }]);
     setInput("");
     setLoading(true);
 
     try {
       const res = await sendChat(ticker, text, agent, threadId, accessToken);
       setThreadId(res.thread_id);
-      setMessages((m) => [...m, { role: "assistant", text: res.text, agent: res.agent }]);
+
+      const assistantId = ++idRef.current;
+      setLatestId(assistantId);
+      setMessages((m) => [
+        ...m,
+        { id: assistantId, role: "assistant", text: res.text, agent: res.agent },
+      ]);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Request failed";
-      setMessages((m) => [...m, { role: "assistant", text: `Error: ${msg}`, agent }]);
+      const errId = ++idRef.current;
+      setLatestId(errId);
+      setMessages((m) => [
+        ...m,
+        { id: errId, role: "assistant", text: `Error: ${msg}`, agent },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -66,7 +145,7 @@ export default function ChatSidebar({ ticker, accessToken }: Props) {
         borderLeft: `1px solid ${theme.colors.border}`,
       }}
     >
-      {/* Sidebar header */}
+      {/* Header */}
       <div
         style={{
           padding: "16px 20px",
@@ -74,12 +153,10 @@ export default function ChatSidebar({ ticker, accessToken }: Props) {
           flexShrink: 0,
         }}
       >
-        <p style={{ margin: 0, fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.textMuted, letterSpacing: "0.1em" }}>
+        <p style={{ margin: "0 0 10px", fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.textMuted, letterSpacing: "0.1em" }}>
           CHAT WITH SPECIALIST
         </p>
-
-        {/* Agent selector */}
-        <div style={{ display: "flex", gap: "6px", marginTop: "10px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           {AGENTS.map((a) => (
             <button
               key={a.value}
@@ -102,7 +179,7 @@ export default function ChatSidebar({ ticker, accessToken }: Props) {
         </div>
       </div>
 
-      {/* Message list */}
+      {/* Messages */}
       <div
         style={{
           flex: 1,
@@ -120,42 +197,41 @@ export default function ChatSidebar({ ticker, accessToken }: Props) {
           </p>
         )}
 
-        {messages.map((m, i) => (
-          <div key={i} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <span
-              style={{
-                fontFamily: theme.font.mono,
-                fontSize: "10px",
-                color: m.role === "user" ? theme.colors.cyan : theme.colors.green,
-                letterSpacing: "0.06em",
-              }}
-            >
-              {m.role === "user" ? "YOU" : `${m.agent.toUpperCase()} AGENT`}
-            </span>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "13px",
-                color: theme.colors.textPrimary,
-                lineHeight: 1.6,
-                whiteSpace: "pre-wrap",
-                background: m.role === "user" ? "transparent" : theme.colors.bg,
-                padding: m.role === "user" ? "0" : "12px 14px",
-                borderRadius: m.role === "user" ? "0" : theme.radius.sm,
-                border: m.role === "user" ? "none" : `1px solid ${theme.colors.border}`,
-              }}
-            >
-              {m.text}
-            </p>
-          </div>
-        ))}
+        {messages.map((m) =>
+          m.role === "user" ? (
+            <div key={m.id} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <span style={{ fontFamily: theme.font.mono, fontSize: "10px", color: theme.colors.cyan, letterSpacing: "0.06em" }}>
+                YOU
+              </span>
+              <p style={{ margin: 0, fontSize: "13px", color: theme.colors.textSecondary, lineHeight: 1.6 }}>
+                {m.text}
+              </p>
+            </div>
+          ) : (
+            <AssistantMessage
+              key={m.id}
+              message={m}
+              animate={m.id === latestId}
+            />
+          )
+        )}
 
         {loading && (
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{ fontFamily: theme.font.mono, fontSize: "10px", color: theme.colors.green, letterSpacing: "0.06em" }}>
               {agent.toUpperCase()} AGENT
             </span>
-            <span style={{ color: theme.colors.textMuted, fontSize: "13px" }}>thinking…</span>
+            <span style={{ color: theme.colors.textMuted, fontSize: "13px", fontFamily: theme.font.mono }}>
+              thinking
+              <span style={{ animation: "dots 1.2s steps(3,end) infinite" }}>...</span>
+            </span>
+            <style>{`
+              @keyframes dots {
+                0%  { clip-path: inset(0 66% 0 0); }
+                33% { clip-path: inset(0 33% 0 0); }
+                66% { clip-path: inset(0 0 0 0); }
+              }
+            `}</style>
           </div>
         )}
 

@@ -2,10 +2,11 @@
 Quanta Terminal — FastAPI application entry point.
 
 Startup sequence (lifespan):
-  1. All 5 specialist agent MCP subprocesses initialised in parallel
-  2. LangGraph pipeline graph compiled
-  3. Redis connection verified (ping)
-  4. App begins accepting requests
+  1. Sentry initialised (if DSN configured)
+  2. All 5 specialist agent MCP subprocesses initialised in parallel
+  3. LangGraph pipeline graph compiled
+  4. Redis connection verified (ping)
+  5. App begins accepting requests
 
 Run with:
     uv run uvicorn api.main:app --reload --port 8000
@@ -13,8 +14,12 @@ Run with:
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import sentry_sdk
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from agents.graph import initialize as init_pipeline
 from api.routes import auth, memo, stocks, chat
@@ -23,15 +28,29 @@ from core.config import settings
 
 
 # ---------------------------------------------------------------------------
+# Sentry
+# ---------------------------------------------------------------------------
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.app_env,
+        integrations=[
+            StarletteIntegration(transaction_style="url"),
+            FastApiIntegration(transaction_style="url"),
+        ],
+        # Capture 100% of transactions in dev, 10% in production
+        traces_sample_rate=1.0 if settings.app_env == "development" else 0.1,
+        send_default_pii=False,   # don't send emails/IPs to Sentry
+    )
+
+
+# ---------------------------------------------------------------------------
 # Lifespan — startup / shutdown
 # ---------------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Initialise all agents and connections at startup so the first request
-    isn't slow. All 5 MCP subprocesses boot concurrently (~5-10 s).
-    """
     print("⚡ Quanta Terminal: initialising agent pipeline…")
     await init_pipeline()
     print("✓  All agents ready.")
@@ -41,7 +60,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Graceful shutdown
     await cache.close()
     print("Quanta Terminal: shutting down.")
 
@@ -59,13 +77,26 @@ app = FastAPI(
 
 
 # ---------------------------------------------------------------------------
+# Global exception handler — captures unhandled errors in Sentry
+# ---------------------------------------------------------------------------
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    sentry_sdk.capture_exception(exc)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An unexpected error occurred. Our team has been notified."},
+    )
+
+
+# ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
 
 _CORS_ORIGINS = [
-    "http://localhost:3000",      # Next.js dev server
+    "http://localhost:3000",
     "http://localhost:3001",
-    "https://quantaterminal.dev", # Production frontend (Phase 4)
+    "https://quantaterminal.dev",
 ]
 
 if settings.app_env == "development":
@@ -77,7 +108,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],   # needed for SSE headers
+    expose_headers=["*"],
 )
 
 
@@ -97,16 +128,15 @@ app.include_router(auth.router,   prefix="/api/v1")
 
 @app.get("/health", tags=["meta"], summary="Health check")
 async def health():
-    """Returns 200 when the server is up and agents are initialised."""
     redis_ok = await cache.ping()
     return {
         "status":  "ok",
         "version": "0.1.0",
         "redis":   "connected" if redis_ok else "unavailable",
+        "sentry":  "enabled" if settings.sentry_dsn else "disabled",
     }
 
 
 @app.get("/api/tickers", tags=["meta"], summary="List tracked tickers")
 async def get_tickers():
-    """Returns the list of tickers this instance is configured to track."""
     return {"tickers": settings.tracked_tickers}

@@ -77,6 +77,7 @@ export default function WatchlistTable() {
     <>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
 
+
       <div
         style={{
           maxWidth: "1200px",

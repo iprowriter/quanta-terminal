@@ -21,6 +21,7 @@ from api.schemas.memo import MemoRecord
 from core import database as db
 from core import redis as cache
 from core.config import settings
+from core.rate_limit import check_memo_limit
 
 router = APIRouter(prefix="/memo", tags=["memo"])
 
@@ -73,6 +74,9 @@ async def generate_memo(ticker: str, user: CurrentUser) -> StreamingResponse:
     """
     ticker = _validate_ticker(ticker)
     user_id: str = user["id"]
+
+    # Rate limit: 5 memo generations per user per day
+    await check_memo_limit(user_id)
 
     async def _event_stream():
         try:

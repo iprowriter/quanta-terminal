@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
       {
         cookies: {
           getAll:    () => cookieStore.getAll(),
-          setAll:    (pairs) => pairs.forEach(({ name, value, options }) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setAll:    (pairs: { name: string; value: string; options?: any }[]) => pairs.forEach(({ name, value, options }) =>
                        cookieStore.set(name, value, options)),
         },
       },

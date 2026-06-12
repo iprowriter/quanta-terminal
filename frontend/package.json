@@ -16,7 +16,8 @@
     "@supabase/ssr": "^0.5.0",
     "react-markdown": "^9.0.0",
     "remark-gfm": "^4.0.0",
-    "lucide-react": "^0.400.0"
+    "lucide-react": "^0.400.0",
+    "@sentry/nextjs": "^8.0.0"
   },
   "devDependencies": {
     "typescript": "^5.5.0",
