@@ -7,8 +7,8 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
   // Only enable in production — avoids noise during dev
-  enabled: true,
-  //enabled: process.env.NODE_ENV === "production",
+  //enabled: true,
+  enabled: process.env.NODE_ENV === "production",
 
   integrations: [
     Sentry.replayIntegration({
