@@ -19,8 +19,10 @@ async function proxy(
   const url = new URL(request.url);
 
   // Reconstruct the backend URL preserving query string
-  //const backendUrl = `${BACKEND_URL}/api/${path.join("/")}${url.search}`;  
-  const backendUrl = `https://quanta-terminal-production.up.railway.app/api/v1/stocks/api/${path.join("/")}${url.search}`; 
+  //const backendUrl = `${BACKEND_URL}/api/${path.join("/")}${url.search}`;  https://quanta-terminal-production.up.railway.app/api/v1/stocks
+  const backendUrl = `https://quanta-terminal-production.up.railway.app/api/${path.join("/")}${url.search}`; 
+
+  console.log("backend url being called from route.ts: ", backendUrl)
 
   // Forward headers but strip host (causes TLS mismatch on Railway)
   const headers = new Headers(request.headers);
