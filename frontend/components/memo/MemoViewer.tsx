@@ -7,11 +7,38 @@ import { streamMemo, fetchMemo, type MemoRecord } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import AgentProgress from "./AgentProgress";
 import ChatSidebar from "./ChatSidebar";
+import Skeleton from "@/components/ui/Skeleton";
 import { theme } from "@/lib/theme";
 
 interface Props { ticker: string; }
 
 type Status = "idle" | "loading_cached" | "streaming" | "done" | "error";
+
+function MemoCacheSkeleton() {
+  return (
+    <div
+      style={{
+        background: theme.colors.bgPanel,
+        border: `1px solid ${theme.colors.border}`,
+        borderRadius: theme.radius.md,
+        padding: "32px 36px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+      }}
+    >
+      <Skeleton width="40%" height="22px" />
+      <Skeleton width="100%" height="14px" />
+      <Skeleton width="95%" height="14px" />
+      <Skeleton width="88%" height="14px" />
+      <Skeleton width="30%" height="18px" style={{ marginTop: "16px" }} />
+      <Skeleton width="100%" height="14px" />
+      <Skeleton width="92%" height="14px" />
+      <Skeleton width="78%" height="14px" />
+      <Skeleton width="100%" height="14px" />
+    </div>
+  );
+}
 
 export default function MemoViewer({ ticker }: Props) {
   const { user, accessToken } = useAuth();
@@ -89,6 +116,7 @@ export default function MemoViewer({ ticker }: Props) {
         display: "flex",
         height: "calc(100vh - 56px)",
         overflow: "hidden",
+        flexDirection: "row",
       }}
     >
       {/* Main panel */}
@@ -96,12 +124,12 @@ export default function MemoViewer({ ticker }: Props) {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "32px 40px",
+          padding: "clamp(16px, 4vw, 40px)",
           minWidth: 0,
         }}
       >
         {/* Back + header */}
-        <div style={{ marginBottom: "28px" }}>
+        <div style={{ marginBottom: "24px" }}>
           <a
             href="/"
             style={{
@@ -114,12 +142,22 @@ export default function MemoViewer({ ticker }: Props) {
           >
             ← WATCHLIST
           </a>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "12px" }}>
+
+          {/* Title row — stacks on mobile */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "12px",
+              marginTop: "12px",
+            }}
+          >
             <h1
               style={{
                 margin: 0,
                 fontFamily: theme.font.mono,
-                fontSize: "24px",
+                fontSize: "clamp(18px, 5vw, 24px)",
                 fontWeight: 600,
                 color: theme.colors.cyan,
                 letterSpacing: "0.06em",
@@ -133,12 +171,13 @@ export default function MemoViewer({ ticker }: Props) {
               </span>
             )}
 
-            <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
+            {/* Action buttons — push right on desktop, wrap on mobile */}
+            <div style={{ marginLeft: "auto", display: "flex", gap: "10px", flexWrap: "wrap" }}>
               {isDone && (
                 <button
                   onClick={() => setChatOpen((o) => !o)}
                   style={{
-                    padding: "6px 16px",
+                    padding: "6px 14px",
                     background: chatOpen ? "rgba(0,212,255,0.1)" : "transparent",
                     border: `1px solid ${theme.colors.cyan}`,
                     borderRadius: theme.radius.sm,
@@ -149,7 +188,7 @@ export default function MemoViewer({ ticker }: Props) {
                     letterSpacing: "0.06em",
                   }}
                 >
-                  {chatOpen ? "HIDE CHAT" : "OPEN CHAT"}
+                  {chatOpen ? "HIDE CHAT" : "CHAT →"}
                 </button>
               )}
 
@@ -158,7 +197,7 @@ export default function MemoViewer({ ticker }: Props) {
                   onClick={startGeneration}
                   disabled={isStreaming}
                   style={{
-                    padding: "6px 16px",
+                    padding: "6px 14px",
                     background: isStreaming ? "transparent" : theme.colors.green,
                     border: `1px solid ${isStreaming ? theme.colors.textMuted : theme.colors.green}`,
                     borderRadius: theme.radius.sm,
@@ -173,7 +212,7 @@ export default function MemoViewer({ ticker }: Props) {
                   {isStreaming ? "GENERATING…" : isDone ? "REGENERATE" : "GENERATE MEMO"}
                 </button>
               ) : (
-                <span style={{ fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.textMuted }}>
+                <span style={{ fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.textMuted, alignSelf: "center" }}>
                   Sign in to generate
                 </span>
               )}
@@ -181,13 +220,10 @@ export default function MemoViewer({ ticker }: Props) {
           </div>
         </div>
 
-        {/* States */}
-        {status === "loading_cached" && (
-          <p style={{ fontFamily: theme.font.mono, fontSize: "13px", color: theme.colors.textMuted }}>
-            CHECKING CACHE…
-          </p>
-        )}
+        {/* Loading cached memo */}
+        {status === "loading_cached" && <MemoCacheSkeleton />}
 
+        {/* Error state */}
         {status === "error" && (
           <div
             style={{
@@ -198,16 +234,19 @@ export default function MemoViewer({ ticker }: Props) {
               color: theme.colors.red,
               fontFamily: theme.font.mono,
               fontSize: "13px",
+              wordBreak: "break-word",
             }}
           >
             ERROR: {errorMsg}
           </div>
         )}
 
-        {(isStreaming || (isDone && memo)) && (
+        {/* Agent progress (streaming or just done) */}
+        {(isStreaming || isDone) && (
           <AgentProgress completed={completed} active={isStreaming} />
         )}
 
+        {/* Empty state */}
         {status === "idle" && !memo && (
           <div
             style={{
@@ -215,7 +254,7 @@ export default function MemoViewer({ ticker }: Props) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "80px 40px",
+              padding: "80px 24px",
               textAlign: "center",
               gap: "16px",
             }}
@@ -253,7 +292,7 @@ export default function MemoViewer({ ticker }: Props) {
               background: theme.colors.bgPanel,
               border: `1px solid ${theme.colors.border}`,
               borderRadius: theme.radius.md,
-              padding: "32px 36px",
+              padding: "clamp(20px, 4vw, 36px)",
               lineHeight: 1.8,
             }}
           >
@@ -261,10 +300,10 @@ export default function MemoViewer({ ticker }: Props) {
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
-                  <h1 style={{ fontFamily: theme.font.mono, color: theme.colors.green, fontSize: "20px", marginTop: "32px", marginBottom: "12px", borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: "8px" }}>{children}</h1>
+                  <h1 style={{ fontFamily: theme.font.mono, color: theme.colors.green, fontSize: "clamp(16px, 3vw, 20px)", marginTop: "32px", marginBottom: "12px", borderBottom: `1px solid ${theme.colors.border}`, paddingBottom: "8px" }}>{children}</h1>
                 ),
                 h2: ({ children }) => (
-                  <h2 style={{ fontFamily: theme.font.mono, color: theme.colors.cyan, fontSize: "16px", marginTop: "28px", marginBottom: "10px" }}>{children}</h2>
+                  <h2 style={{ fontFamily: theme.font.mono, color: theme.colors.cyan, fontSize: "clamp(13px, 2.5vw, 16px)", marginTop: "28px", marginBottom: "10px" }}>{children}</h2>
                 ),
                 h3: ({ children }) => (
                   <h3 style={{ fontFamily: theme.font.mono, color: theme.colors.textPrimary, fontSize: "14px", marginTop: "20px", marginBottom: "8px" }}>{children}</h3>
@@ -295,9 +334,16 @@ export default function MemoViewer({ ticker }: Props) {
         )}
       </div>
 
-      {/* Chat sidebar */}
+      {/* Chat sidebar — hidden on mobile when closed */}
       {chatOpen && isDone && accessToken && (
-        <div style={{ width: "360px", flexShrink: 0 }}>
+        <div
+          style={{
+            width: "clamp(280px, 30vw, 380px)",
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <ChatSidebar ticker={ticker} accessToken={accessToken} />
         </div>
       )}

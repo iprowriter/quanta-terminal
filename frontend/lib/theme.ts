@@ -19,7 +19,7 @@ export const theme = {
 
     textPrimary:  "#e8e8f0",   // headings, important values
     textSecondary:"#8888aa",   // labels, secondary info
-    textMuted:    "#44445a",   // placeholder, disabled
+    textMuted:    "#6b6b8a",   // placeholder, disabled
 
     overlay:      "rgba(0,0,0,0.7)",
   },

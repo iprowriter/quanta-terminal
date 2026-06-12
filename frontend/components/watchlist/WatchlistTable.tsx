@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { fetchStocks, type StockQuote } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import LoginModal from "@/components/auth/LoginModal";
+import { WatchlistSkeleton } from "@/components/ui/Skeleton";
 import { theme } from "@/lib/theme";
 
 function fmt(n: number | null, decimals = 2, prefix = ""): string {
@@ -34,8 +35,8 @@ export default function WatchlistTable() {
   const [showLogin,  setShowLogin]  = useState(false);
   const [pendingTicker, setPendingTicker] = useState<string | null>(null);
 
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
+  const router   = useRouter();
 
   const load = useCallback(async () => {
     try {
@@ -49,7 +50,6 @@ export default function WatchlistTable() {
     }
   }, []);
 
-  // Initial load + 60s refresh
   useEffect(() => {
     load();
     const interval = setInterval(load, 60_000);
@@ -73,26 +73,6 @@ export default function WatchlistTable() {
     }
   }
 
-  const colStyle = (align: "left" | "right" = "right"): React.CSSProperties => ({
-    padding: "14px 20px",
-    textAlign: align,
-    fontFamily: theme.font.mono,
-    fontSize: "13px",
-    borderBottom: `1px solid ${theme.colors.border}`,
-    whiteSpace: "nowrap",
-  });
-
-  const headStyle = (align: "left" | "right" = "right"): React.CSSProperties => ({
-    ...colStyle(align),
-    color: theme.colors.textMuted,
-    fontSize: "11px",
-    letterSpacing: "0.1em",
-    fontWeight: 500,
-    padding: "10px 20px",
-    borderBottom: `1px solid ${theme.colors.borderBright}`,
-    background: theme.colors.bgPanel,
-  });
-
   return (
     <>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
@@ -100,17 +80,19 @@ export default function WatchlistTable() {
       <div
         style={{
           maxWidth: "1200px",
-          margin: "40px auto",
-          padding: "0 24px",
+          margin: "32px auto",
+          padding: "0 16px",
         }}
       >
-        {/* Header row */}
+        {/* Page header */}
         <div
           style={{
             display: "flex",
-            alignItems: "baseline",
+            alignItems: "flex-end",
             justifyContent: "space-between",
             marginBottom: "20px",
+            flexWrap: "wrap",
+            gap: "8px",
           }}
         >
           <div>
@@ -118,7 +100,7 @@ export default function WatchlistTable() {
               style={{
                 margin: 0,
                 fontFamily: theme.font.mono,
-                fontSize: "20px",
+                fontSize: "clamp(16px, 3vw, 20px)",
                 fontWeight: 600,
                 color: theme.colors.textPrimary,
                 letterSpacing: "0.04em",
@@ -127,111 +109,108 @@ export default function WatchlistTable() {
               WATCHLIST
             </h1>
             <p style={{ margin: "4px 0 0", color: theme.colors.textSecondary, fontSize: "12px" }}>
-              Emerging compute intelligence — quantum + AI
+              Emerging compute intelligence — quantum + AI chips
             </p>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            {lastUpdate && (
-              <span style={{ fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.textMuted }}>
-                Updated {lastUpdate.toLocaleTimeString()}
-              </span>
-            )}
-            {!authLoading && (
-              user ? (
-                <span style={{ fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.green }}>
-                  ● {user.email}
-                </span>
-              ) : (
-                <button
-                  onClick={() => setShowLogin(true)}
-                  style={{
-                    padding: "6px 14px",
-                    background: "transparent",
-                    border: `1px solid ${theme.colors.green}`,
-                    borderRadius: theme.radius.sm,
-                    color: theme.colors.green,
-                    fontFamily: theme.font.mono,
-                    fontSize: "11px",
-                    cursor: "pointer",
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  SIGN IN
-                </button>
-              )
-            )}
-          </div>
+          {lastUpdate && (
+            <span style={{ fontFamily: theme.font.mono, fontSize: "11px", color: theme.colors.textMuted }}>
+              Updated {lastUpdate.toLocaleTimeString()}
+            </span>
+          )}
         </div>
 
-        {/* Table */}
-        <div
-          style={{
-            borderRadius: theme.radius.md,
-            border: `1px solid ${theme.colors.border}`,
-            overflow: "hidden",
-            boxShadow: theme.shadow.card,
-          }}
-        >
-          {loading ? (
-            <div style={{ padding: "60px", textAlign: "center", color: theme.colors.textMuted, fontFamily: theme.font.mono, fontSize: "13px" }}>
-              LOADING MARKET DATA…
-            </div>
-          ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        {/* Table — scrollable on mobile */}
+        {loading ? (
+          <WatchlistSkeleton />
+        ) : (
+          <div style={{ overflowX: "auto", borderRadius: "8px" }}>
+            <table
+              style={{
+                width: "100%",
+                minWidth: "700px",
+                borderCollapse: "collapse",
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: "8px",
+                overflow: "hidden",
+                boxShadow: theme.shadow.card,
+              }}
+            >
               <thead>
                 <tr>
-                  <th style={headStyle("left")}>TICKER</th>
-                  <th style={headStyle("left")}>COMPANY</th>
-                  <th style={headStyle()}>PRICE</th>
-                  <th style={headStyle()}>CHANGE</th>
-                  <th style={headStyle()}>MARKET CAP</th>
-                  <th style={headStyle()}>VOLUME</th>
-                  <th style={headStyle()}>ACTION</th>
+                  {[
+                    ["TICKER",     "left"],
+                    ["COMPANY",    "left"],
+                    ["PRICE",      "right"],
+                    ["CHANGE",     "right"],
+                    ["MARKET CAP", "right"],
+                    ["VOLUME",     "right"],
+                    ["ACTION",     "right"],
+                  ].map(([label, align]) => (
+                    <th
+                      key={label}
+                      style={{
+                        padding: "10px 16px",
+                        textAlign: align as "left" | "right",
+                        fontFamily: theme.font.mono,
+                        fontSize: "11px",
+                        color: theme.colors.textMuted,
+                        letterSpacing: "0.1em",
+                        fontWeight: 500,
+                        borderBottom: `1px solid ${theme.colors.borderBright}`,
+                        background: theme.colors.bgPanel,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {stocks.map((s) => {
-                  const isPositive = s.change_pct !== null && s.change_pct > 0;
-                  const isNegative = s.change_pct !== null && s.change_pct < 0;
+                  const pos = s.change_pct !== null && s.change_pct > 0;
+                  const neg = s.change_pct !== null && s.change_pct < 0;
+
+                  const cell = (align: "left" | "right" = "right"): React.CSSProperties => ({
+                    padding: "13px 16px",
+                    textAlign: align,
+                    fontFamily: theme.font.mono,
+                    fontSize: "13px",
+                    borderBottom: `1px solid ${theme.colors.border}`,
+                    whiteSpace: "nowrap",
+                  });
+
                   return (
                     <tr
                       key={s.ticker}
-                      style={{ background: theme.colors.bgPanel }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = theme.colors.bgHover)
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = theme.colors.bgPanel)
-                      }
+                      style={{ background: theme.colors.bgPanel, transition: "background 0.1s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = theme.colors.bgHover)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = theme.colors.bgPanel)}
                     >
-                      <td style={{ ...colStyle("left"), color: theme.colors.cyan, fontWeight: 600 }}>
+                      <td style={{ ...cell("left"), color: theme.colors.cyan, fontWeight: 600 }}>
                         {s.ticker}
                       </td>
-                      <td style={{ ...colStyle("left"), color: theme.colors.textSecondary, fontFamily: theme.font.sans }}>
+                      <td style={{ ...cell("left"), color: theme.colors.textSecondary, fontFamily: theme.font.sans, fontSize: "13px" }}>
                         {s.name}
                       </td>
-                      <td style={{ ...colStyle(), color: theme.colors.textPrimary }}>
+                      <td style={{ ...cell(), color: theme.colors.textPrimary }}>
                         {fmt(s.price, 2, "$")}
                       </td>
-                      <td style={{
-                        ...colStyle(),
-                        color: isPositive ? theme.colors.green : isNegative ? theme.colors.red : theme.colors.textMuted,
-                        fontWeight: 500,
-                      }}>
-                        {s.change_pct === null ? "—" : `${isPositive ? "+" : ""}${fmt(s.change_pct)}%`}
+                      <td style={{ ...cell(), color: pos ? theme.colors.green : neg ? theme.colors.red : theme.colors.textMuted, fontWeight: 500 }}>
+                        {s.change_pct === null ? "—" : `${pos ? "+" : ""}${fmt(s.change_pct)}%`}
                       </td>
-                      <td style={{ ...colStyle(), color: theme.colors.textSecondary }}>
+                      <td style={{ ...cell(), color: theme.colors.textSecondary }}>
                         {fmtMarketCap(s.market_cap)}
                       </td>
-                      <td style={{ ...colStyle(), color: theme.colors.textSecondary }}>
+                      <td style={{ ...cell(), color: theme.colors.textSecondary }}>
                         {fmtVolume(s.volume)}
                       </td>
-                      <td style={colStyle()}>
+                      <td style={cell()}>
                         <button
                           onClick={() => handleGenerate(s.ticker)}
                           style={{
-                            padding: "5px 14px",
+                            padding: "5px 12px",
                             background: "transparent",
                             border: `1px solid ${theme.colors.green}`,
                             borderRadius: theme.radius.sm,
@@ -240,16 +219,12 @@ export default function WatchlistTable() {
                             fontSize: "11px",
                             cursor: "pointer",
                             letterSpacing: "0.06em",
-                            transition: "background 0.15s",
+                            whiteSpace: "nowrap",
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "rgba(0,255,136,0.1)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
-                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,255,136,0.1)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         >
-                          GENERATE MEMO →
+                          MEMO →
                         </button>
                       </td>
                     </tr>
@@ -257,8 +232,8 @@ export default function WatchlistTable() {
                 })}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </>
   );

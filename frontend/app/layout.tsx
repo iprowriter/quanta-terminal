@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/hooks/useAuth";
+import Header from "@/components/ui/Header";
 import { theme } from "@/lib/theme";
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -30,44 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }}
       >
         <AuthProvider>
-          {/* Top nav bar */}
-          <header
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 32px",
-              height: "56px",
-              borderBottom: `1px solid ${theme.colors.border}`,
-              background: theme.colors.bgPanel,
-              position: "sticky",
-              top: 0,
-              zIndex: 100,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: theme.font.mono,
-                fontSize: "16px",
-                fontWeight: 600,
-                color: theme.colors.green,
-                letterSpacing: "0.08em",
-              }}
-            >
-              ⚡ QUANTA TERMINAL
-            </span>
-            <span
-              style={{
-                fontFamily: theme.font.mono,
-                fontSize: "11px",
-                color: theme.colors.textMuted,
-                letterSpacing: "0.1em",
-              }}
-            >
-              AI RESEARCH v0.1
-            </span>
-          </header>
-
+          <Header />
           <main>{children}</main>
         </AuthProvider>
       </body>
