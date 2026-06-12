@@ -51,12 +51,15 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development")
     secret_key: str = Field(default="change-me")
 
+    # Frontend URL — used for CORS allowlist in production
+    frontend_url: str = Field(default="http://localhost:3000")
+
     # Sentry
     sentry_dsn: str = Field(default="")   # leave blank to disable
 
     # Tracked stocks
     tracked_tickers_raw: str = Field(
-        default="QUBT,RGTI,QBTS,IONQ,NVDA,SMCI,MSTR,ARQQ",
+        default="QUBT,RGTI,QBTS,IONQ,NVDA,SMCI,MSTR,ARQQ,IBM,INTC",
         validation_alias="TRACKED_TICKERS",
     )
 

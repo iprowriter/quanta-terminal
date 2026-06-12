@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: quanta-terminal-backend
+    runtime: python
+    region: oregon
+    plan: starter          # upgrade to standard for production traffic
+    rootDir: backend
+    buildCommand: pip install uv && uv sync
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: GOOGLE_API_KEY
+        sync: false        # set manually in Render dashboard
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: REDIS_URL
+        sync: false        # use Upstash Redis URL
+      - key: FRONTEND_URL
+        sync: false        # your Vercel URL e.g. https://quanta-terminal.vercel.app
+      - key: LANGCHAIN_API_KEY
+        sync: false
+      - key: LANGCHAIN_TRACING_V2
+        value: "true"
+      - key: LANGCHAIN_PROJECT
+        value: quanta-terminal
+      - key: NEWS_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: TRACKED_TICKERS
+        value: QUBT,RGTI,QBTS,IONQ,NVDA,SMCI,MSTR,ARQQ,IBM,INTC
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: MEMO_WRITER_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite

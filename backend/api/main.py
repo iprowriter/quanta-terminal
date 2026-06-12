@@ -96,7 +96,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 _CORS_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://quantaterminal.dev",
+    settings.frontend_url,   # set FRONTEND_URL in Render to your Vercel domain
 ]
 
 if settings.app_env == "development":
