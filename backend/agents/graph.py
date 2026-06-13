@@ -21,7 +21,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
 
-from agents import analyst_agent, earnings_agent, sec_agent, news_agent, tech_agent
+from agents import analyst_agent, earnings_agent, sec_agent, news_agent, research_agent
 from agents import memo_writer
 
 
@@ -86,7 +86,7 @@ async def orchestrator_node(state: PipelineState, config: RunnableConfig) -> dic
         _run(earnings_agent, "earnings", f"Analyse {ticker} EPS trends, beat/miss history, revenue trajectory, and next earnings date"),
         _run(analyst_agent,  "analyst",  f"Analyse {ticker} valuation, financials, Wall Street consensus, and price targets"),
         _run(news_agent,     "news",     f"Analyse recent {ticker} news sentiment, coverage spikes, and sector developments"),
-        _run(tech_agent,     "tech",     f"Analyse {ticker} research papers, publication velocity, and technology positioning"),
+        _run(research_agent, "research", f"Analyse {ticker} research papers, publication velocity, and technology positioning"),
     )
 
     key_map = {
@@ -94,7 +94,7 @@ async def orchestrator_node(state: PipelineState, config: RunnableConfig) -> dic
         "earnings": "earnings_analysis",
         "analyst":  "analyst_analysis",
         "news":     "news_analysis",
-        "tech":     "tech_analysis",
+        "research": "tech_analysis",
     }
 
     updates: dict[str, Any] = {"completed_agents": []}
@@ -184,7 +184,7 @@ async def initialize() -> None:
         earnings_agent.initialize(),
         analyst_agent.initialize(),
         news_agent.initialize(),
-        tech_agent.initialize(),
+        research_agent.initialize(),
         return_exceptions=True,
     )
     errors = [r for r in results if isinstance(r, BaseException)]
@@ -237,7 +237,7 @@ async def stream_pipeline(ticker: str) -> AsyncGenerator[dict[str, Any], None]:
         {"event": "agent_complete", "agent": "earnings"}
         {"event": "agent_complete", "agent": "analyst"}
         {"event": "agent_complete", "agent": "news"}
-        {"event": "agent_complete", "agent": "tech"}
+        {"event": "agent_complete", "agent": "research"}
         {"event": "agent_complete", "agent": "memo_writer"}
 
     Final event (after memo_writer finishes):

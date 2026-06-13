@@ -29,7 +29,7 @@ class StocksResponse(BaseModel):
 
 class AgentCompleteEvent(BaseModel):
     event: Literal["agent_complete"] = "agent_complete"
-    agent: str                         # "sec" | "earnings" | "analyst" | "news" | "tech" | "memo_writer"
+    agent: str                         # "sec" | "earnings" | "analyst" | "news" | "research" | "memo_writer"
     label: str                         # human-readable agent name
 
 
@@ -71,7 +71,7 @@ class ChatRequest(BaseModel):
         default=None,
         description="Omit to start a new conversation; pass back to continue one.",
     )
-    agent: Literal["analyst", "earnings", "sec", "news", "tech"] = Field(
+    agent: Literal["analyst", "earnings", "sec", "news", "research"] = Field(
         default="analyst",
         description="Which specialist agent to route this message to.",
     )

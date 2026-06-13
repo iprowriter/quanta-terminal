@@ -7,7 +7,7 @@ const AGENTS = [
   { key: "earnings",    label: "Earnings" },
   { key: "analyst",     label: "Analyst & Valuation" },
   { key: "news",        label: "News & Sentiment" },
-  { key: "tech",        label: "Technology & Research" },
+  { key: "research",    label: "Research & Technology" },
   { key: "memo_writer", label: "Writing Memo" },
 ];
 

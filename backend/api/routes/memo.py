@@ -31,7 +31,7 @@ _AGENT_LABELS: dict[str, str] = {
     "earnings":    "Earnings",
     "analyst":     "Analyst & Valuation",
     "news":        "News & Sentiment",
-    "tech":        "Technology & Research",
+    "research":    "Research & Technology",
     "memo_writer": "Writing Memo",
 }
 

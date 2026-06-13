@@ -10,7 +10,7 @@ requests to continue the same conversation.
 
 from fastapi import APIRouter, HTTPException
 
-from agents import analyst_agent, earnings_agent, sec_agent, news_agent, tech_agent
+from agents import analyst_agent, earnings_agent, sec_agent, news_agent, research_agent
 from api.dependencies import CurrentUser
 from api.schemas.memo import ChatRequest, ChatResponse
 
@@ -21,7 +21,7 @@ _AGENT_MAP = {
     "earnings": earnings_agent,
     "sec":      sec_agent,
     "news":     news_agent,
-    "tech":     tech_agent,
+    "research": research_agent,
 }
 
 
@@ -37,7 +37,7 @@ async def chat(request: ChatRequest, user: CurrentUser) -> ChatResponse:
     - `earnings` — EPS history, beat/miss streaks, next earnings date
     - `sec`      — SEC filings, cash runway, dilution risk, 8-K events
     - `news`     — recent headlines, sentiment, sector news
-    - `tech`     — research papers, technology positioning
+    - `research` — research papers, technology positioning
     """
     agent_module = _AGENT_MAP.get(request.agent)
     if agent_module is None:

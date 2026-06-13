@@ -35,7 +35,7 @@ export interface MemoRecord {
   created_at:        string;
 }
 
-export type AgentName = "analyst" | "earnings" | "sec" | "news" | "tech";
+export type AgentName = "analyst" | "earnings" | "sec" | "news" | "research";
 
 export interface ChatResponse {
   text:      string;

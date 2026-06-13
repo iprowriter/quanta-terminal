@@ -10,7 +10,7 @@ const AGENTS: { value: AgentName; label: string }[] = [
   { value: "earnings", label: "Earnings" },
   { value: "sec",      label: "SEC" },
   { value: "news",     label: "News" },
-  { value: "tech",     label: "Tech" },
+  { value: "research", label: "Research" },
 ];
 
 interface Message {

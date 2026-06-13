@@ -1,5 +1,5 @@
 """
-Tech Agent
+Research Agent
 LangGraph agent that analyses arXiv research papers, publication velocity, and technology positioning.
 
 Tools: search_papers · get_papers_for_ticker · get_paper_detail · get_sector_research_pulse
@@ -21,7 +21,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from typing_extensions import TypedDict
 
-from prompts.system_prompts import tech_system_prompt, ticker_hint
+from prompts.system_prompts import research_system_prompt, ticker_hint
 from core.config import settings
 
 # ---------------------------------------------------------------------------
@@ -94,7 +94,7 @@ def _build_model():
 
 async def llm_call(state: TechState, model_with_tools) -> dict:
     """Send messages to the LLM and return the response."""
-    system = SystemMessage(content=tech_system_prompt + ticker_hint(state["messages"]))
+    system = SystemMessage(content=research_system_prompt + ticker_hint(state["messages"]))
     response = await model_with_tools.ainvoke([system] + state["messages"])
     return {"messages": [response]}
 

@@ -58,7 +58,7 @@ export default function MemoViewer({ ticker }: Props) {
       .then((record) => {
         if (record) {
           setMemo(record);
-          setCompleted(new Set(["sec","earnings","analyst","news","tech","memo_writer"]));
+          setCompleted(new Set(["sec","earnings","analyst","news","research","memo_writer"]));
           setStatus("done");
         } else {
           setStatus("idle");
@@ -94,7 +94,7 @@ export default function MemoViewer({ ticker }: Props) {
             generated_by:      user?.id ?? null,
             created_at:        new Date().toISOString(),
           });
-          setCompleted(new Set(["sec","earnings","analyst","news","tech","memo_writer"]));
+          setCompleted(new Set(["sec","earnings","analyst","news","research","memo_writer"]));
         } else if (event.event === "error") {
           setErrorMsg(event.message as string);
           setStatus("error");
